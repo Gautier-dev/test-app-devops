@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-app-flask
+  labels:
+    app.kubernetes.io/name: test-app-flask
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: test-app-flask
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: test-app-flask
+    spec:
+      volumes:
+      - name: my-pvc
+        persistentVolumeClaim:
+          claimName: my-pvc
+      containers:
+      - envFrom:
+          - configMapRef:
+              name: test-configmap
+        image: docker.io/gautierbdev/test-app-flask:latest
+        imagePullPolicy: Always
+        name: test-app-flask
+        volumeMounts:
+          - mountPath: "/mnt/local-data"
+            name: my-pvc
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 2
+#      imagePullSecrets:
+#      - name: docker-login
+       
